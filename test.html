@@ -1,0 +1,133 @@
+<html>
+<head>
+<meta charset='utf-8'/>
+<title>WebAssembly test</title>
+<meta property="og:image" content="test.jpg">
+<link rel="apple-touch-icon" href="test.png"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+
+<style>
+body {
+	font-family: sans-serif;
+}
+#jssrc {
+	width: 90%;
+	white-space: pre-wrap;
+	background-color: #fff;
+	border: 1px solid black;
+	color: #000;
+	padding: .5em 1em;
+	margin: 10px 0em;
+	line-height: 1.3em;
+	letter-spacing: 2px;
+	font-size: 85%;
+	x-overflow: scroll;
+	padding: 4px;
+}
+#output {
+	width: 90%;
+	height: 14em;
+	background-color: #eee;
+	border: 1px solid black;
+	color: #000;
+	padding: 4px;
+	margin-bottom: 10px;
+	overflow: scroll;
+}
+.csrc {
+	width: 90%;
+	white-space: pre-wrap;
+	x-white-space: pre;
+	background: #000;
+	color: white;
+	padding: 4px;
+	line-height: 1.3em;
+	letter-spacing: 2px;
+	font-size: 85%;
+	x-overflow: scroll;
+}
+#credit {
+	font-size: 12px;
+	margin-top: 3px;
+}
+a {
+	color: gray !important;
+}
+</style>
+<script>
+
+window.onload = function() {
+	var print = function(s) {
+		output.innerHTML += s + "<br>";
+		console.log(s);
+	};
+	
+	fetch('test.wasm')
+		.then(response => response.arrayBuffer())
+		.then(buffer => WebAssembly.compile(buffer))
+		.then(module => {
+			const asm = new WebAssembly.Instance(module);
+			const mem = asm.exports.memory.buffer;
+			const memoffset = asm.exports.getMemory();
+			const memlen = asm.exports.getMemorySize();
+			var data = new Uint32Array(mem, memoffset, memlen);
+			
+			print("mem len: " + data.length);
+			for (var i = 0; i < data.length; i++) {
+				data[i] = i + 1;
+				print("set [" + i + "] = " + (i + 1));
+			}
+			print("calc: " + asm.exports.calc());
+		});
+};
+
+</script>
+</head>
+<body>
+<h1>WebAssembly test</h1>
+
+JavaScript code
+<div id=jssrc>const asm = new WebAssembly.Instance(module);
+const mem = asm.exports.memory.buffer;
+const memoffset = asm.exports.getMemory();
+const memlen = asm.exports.getMemorySize();
+var data = new Uint32Array(mem, memoffset, memlen);
+
+print("mem len: " + data.length);
+for (var i = 0; i &lt; data.length; i++) {
+	data[i] = i + 1;
+	print("set [" + i + "] = " + (i + 1));
+}
+print("calc: " + asm.exports.calc());
+</div>
+Output on the browser
+<div id=output></div>
+
+C code
+<div class=csrc>#define SIZE 10
+
+int mem[SIZE];
+
+int* getMemory() {
+	return mem;
+}
+int getMemorySize() {
+	return SIZE;
+}
+int calc() {
+	int sum = 0;
+	for (int i = 0; i &lt; SIZE; i++) {
+		sum += mem[i];
+	}
+	return sum;
+}
+</div>
+
+<div id="credit">
+API: <a href=http://webassembly.org/>WebAssembly / wasm</a><br>
+APP: <a href="http://fukuno.jig.jp/1726">CC BY fukuno.jig.jp</a><br>
+</div>
+
+</body>
+</html>
