@@ -3,4 +3,6 @@ https://taisukef.github.io/wasm-first/
 
 ## blog
 (Old version) first step of WebAssembly (wasm)  
-https://fukuno.jig.jp/1726
+https://fukuno.jig.jp/1726  
+(fixed)  
+https://fukuno.jig.jp/3159  
