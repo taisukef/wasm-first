@@ -1,10 +1,7 @@
-<html>
-<head>
-<meta charset='utf-8'/>
-<title>WebAssembly test</title>
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>WebAssembly first-step</title>
 <meta property="og:image" content="test.jpg">
-<link rel="apple-touch-icon" href="test.png"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<link rel="apple-touch-icon" href="test.png">
 <meta name="format-detection" content="telephone=no">
 
 <style>
@@ -55,51 +52,48 @@ a {
 	color: gray !important;
 }
 </style>
-<script>
-
-window.onload = function() {
+<script type="module">
+window.onload = async () => {
 	var print = function(s) {
 		output.innerHTML += s + "<br>";
 		console.log(s);
 	};
-	
-	fetch('test.wasm')
-		.then(response => response.arrayBuffer())
-		.then(buffer => WebAssembly.compile(buffer))
-		.then(module => {
-			const asm = new WebAssembly.Instance(module);
-			const mem = asm.exports.memory.buffer;
-			const memoffset = asm.exports.getMemory();
-			const memlen = asm.exports.getMemorySize();
-			var data = new Uint32Array(mem, memoffset, memlen);
-			
-			print("mem len: " + data.length);
-			for (var i = 0; i < data.length; i++) {
-				data[i] = i + 1;
-				print("set [" + i + "] = " + (i + 1));
-			}
-			print("calc: " + asm.exports.calc());
-		});
-};
 
+	const buf = await (await fetch("./test.wasm")).arrayBuffer();
+	const result = await WebAssembly.instantiate(buf);
+	const ex = result.instance.exports;
+	const mem = ex.memory.buffer;
+	const memoffset = ex.getMemory();
+	const memlen = ex.getMemorySize();
+	const data = new Uint32Array(mem, memoffset, memlen);
+
+	print("mem len: " + data.length);
+	for (let i = 0; i < data.length; i++) {
+		data[i] = i + 1;
+		print("set [" + i + "] = " + (i + 1));
+	}
+	print("calc: " + ex.calc());
+};
 </script>
 </head>
 <body>
-<h1>WebAssembly test</h1>
+<h1>WebAssembly first-step</h1>
 
 JavaScript code
-<div id=jssrc>const asm = new WebAssembly.Instance(module);
-const mem = asm.exports.memory.buffer;
-const memoffset = asm.exports.getMemory();
-const memlen = asm.exports.getMemorySize();
-var data = new Uint32Array(mem, memoffset, memlen);
+<div id=jssrc>const buf = await (await fetch("./test.wasm")).arrayBuffer();
+const result = await WebAssembly.instantiate(buf);
+const ex = result.instance.exports;
+const mem = ex.memory.buffer;
+const memoffset = ex.getMemory();
+const memlen = ex.getMemorySize();
+const data = new Uint32Array(mem, memoffset, memlen);
 
 print("mem len: " + data.length);
-for (var i = 0; i &lt; data.length; i++) {
+for (let i = 0; i < data.length; i++) {
 	data[i] = i + 1;
 	print("set [" + i + "] = " + (i + 1));
 }
-print("calc: " + asm.exports.calc());
+print("calc: " + ex.calc());
 </div>
 Output on the browser
 <div id=output></div>
@@ -122,6 +116,15 @@ int calc() {
 	}
 	return sum;
 }
+</div>
+
+setup
+<div class=csrc>$ brew install llvm
+</div>
+
+command to compile
+<div class=csrc>$ /usr/local/opt/llvm/bin/clang --target=wasm32 -O3 -nostdlib -Wl,--no-entry -Wl,--export-all \
+	test.c -o test.wasm
 </div>
 
 <div id="credit">

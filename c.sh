@@ -1,4 +1,2 @@
-clang -emit-llvm --target=wasm32 -S test.c
-llc test.ll -march=wasm32
-s2wasm --allocate-stack 10000 test.s > test.wast
-wast2wasm -o test.wasm test.wast
+/usr/local/opt/llvm/bin/clang --target=wasm32 -O3 -nostdlib -Wl,--no-entry -Wl,--export-all \
+  test.c -o test.wasm
